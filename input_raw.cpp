@@ -2,8 +2,8 @@
 
 enum {
 	raw_bits_per_sample = 16,
-	raw_channels = 2,
-	raw_sample_rate = 44100,
+	raw_channels = 1,
+	raw_sample_rate = 16000,
 
 	raw_bytes_per_sample = raw_bits_per_sample / 8,
 	raw_total_sample_width = raw_bytes_per_sample * raw_channels,
@@ -85,7 +85,9 @@ public:
 	void retag(const file_info & p_info,abort_callback & p_abort) {throw exception_io_unsupported_format();}
 	
 	static bool g_is_our_content_type(const char * p_content_type) {return false;} // match against supported mime types here
-	static bool g_is_our_path(const char * p_path,const char * p_extension) {return stricmp_utf8(p_extension,"raw") == 0;}
+	static bool g_is_our_path(const char * p_path, const char * p_extension) {
+		return !stricmp_utf8(p_extension, "raw") || !stricmp_utf8(p_extension, "pcm");
+	}
 	static const char * g_get_name() { return "foo_sample raw input"; }
 	static const GUID g_get_guid() {
 		// GUID of the decoder. Replace with your own when reusing code.
@@ -100,4 +102,4 @@ public:
 static input_singletrack_factory_t<input_raw> g_input_raw_factory;
 
 // Declare .RAW as a supported file type to make it show in "open file" dialog etc.
-DECLARE_FILE_TYPE("Raw files","*.RAW");
+DECLARE_FILE_TYPE("Raw files","*.RAW;*.PCM");
