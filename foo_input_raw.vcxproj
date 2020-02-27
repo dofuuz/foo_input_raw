@@ -117,7 +117,7 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="foo_sample.rc" />
+    <ResourceCompile Include="foo_input_raw.rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\libPPUI\libPPUI.vcxproj">

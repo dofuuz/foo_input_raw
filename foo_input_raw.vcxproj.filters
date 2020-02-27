@@ -40,7 +40,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="foo_sample.rc">
+    <ResourceCompile Include="foo_input_raw.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
