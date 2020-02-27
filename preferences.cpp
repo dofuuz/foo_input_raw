@@ -1,10 +1,12 @@
 #include "stdafx.h"
 #include "resource.h"
 #include <helpers/atl-misc.h>
+#include <helpers/dropdown_helper.h>
 
 // These GUIDs identify the variables within our component's configuration file.
 static const GUID guid_cfg_fs = { 0x1d3c5d34, 0xc9f3, 0x4c5a, { 0x94, 0x5e, 0x64, 0xd9, 0x36, 0xad, 0x4c, 0x5f } };
 static const GUID guid_cfg_channel = { 0x52b24082, 0x6350, 0x482a, { 0x87, 0xf, 0x41, 0x47, 0x8b, 0x29, 0xdb, 0x6b } };
+static const GUID guid_cfg_history_rate = { 0x5bcb64d3, 0x9f1c, 0x4045, { 0xb6, 0x9e, 0xf5, 0x9, 0x56, 0x6f, 0x37, 0xed } };
 
 enum {
 	default_cfg_fs = 16000,
@@ -13,6 +15,8 @@ enum {
 
 cfg_uint cfg_fs(guid_cfg_fs, default_cfg_fs);
 cfg_uint cfg_channel(guid_cfg_channel, default_cfg_channel);
+static cfg_dropdown_history cfg_history_rate(guid_cfg_history_rate, 32);
+static const unsigned srate_tab[] = { 8000, 11025, 16000, 22050, 24000, 32000, 44100, 48000, 88200, 96000, 176400, 192000, 352800, 384000 };
 
 
 class CMyPreferences : public CDialogImpl<CMyPreferences>, public preferences_page_instance {
@@ -34,12 +38,15 @@ public:
 	//WTL message map
 	BEGIN_MSG_MAP_EX(CMyPreferences)
 		MSG_WM_INITDIALOG(OnInitDialog)
-		COMMAND_HANDLER_EX(IDC_FS, EN_CHANGE, OnEditChange)
+		COMMAND_HANDLER_EX(IDC_FS, CBN_EDITCHANGE, OnEditChange)
+		COMMAND_HANDLER_EX(IDC_FS, CBN_SELCHANGE, OnSelectionChange)
+		DROPDOWN_HISTORY_HANDLER(IDC_FS, cfg_history_rate)
 		COMMAND_HANDLER_EX(IDC_CHANNEL, EN_CHANGE, OnEditChange)
 	END_MSG_MAP()
 private:
 	BOOL OnInitDialog(CWindow, LPARAM);
 	void OnEditChange(UINT, int, CWindow);
+	void OnSelectionChange(UINT, int, CWindow);
 	bool HasChanged();
 	void OnChanged();
 
@@ -47,13 +54,29 @@ private:
 };
 
 BOOL CMyPreferences::OnInitDialog(CWindow, LPARAM) {
-	SetDlgItemInt(IDC_FS, cfg_fs, FALSE);
+	char temp[16] = {};
+	for (int n = tabsize(srate_tab); n--;) {
+		if (srate_tab[n] == cfg_fs) continue;
+
+		snprintf(temp, sizeof(temp), "%u", srate_tab[n]);
+		cfg_history_rate.add_item(temp);
+	}
+	snprintf(temp, sizeof(temp), "%u", cfg_fs.get_value());
+	cfg_history_rate.add_item(temp);
+	CWindow w = GetDlgItem(IDC_FS);
+	cfg_history_rate.setup_dropdown(w);
+	::SendMessage(w, CB_SETCURSEL, 0, 0);
+
 	SetDlgItemInt(IDC_CHANNEL, cfg_channel, FALSE);
+
 	return FALSE;
 }
 
 void CMyPreferences::OnEditChange(UINT, int, CWindow) {
-	// not much to do here
+	OnChanged();
+}
+
+void CMyPreferences::OnSelectionChange(UINT, int, CWindow) {
 	OnChanged();
 }
 
@@ -70,9 +93,16 @@ void CMyPreferences::reset() {
 }
 
 void CMyPreferences::apply() {
-	cfg_fs = GetDlgItemInt(IDC_FS, NULL, FALSE);
+	char temp[16];
+	unsigned fs = GetDlgItemInt(IDC_FS, NULL, FALSE);
+	if (fs < 1000) fs = 1000;
+	SetDlgItemInt(IDC_FS, fs, FALSE);
+	snprintf(temp, sizeof(temp), "%u", fs);
+	cfg_history_rate.add_item(temp);
+	cfg_fs = fs;
+
 	cfg_channel = GetDlgItemInt(IDC_CHANNEL, NULL, FALSE);
-	
+
 	OnChanged(); //our dialog content has not changed but the flags have - our currently shown values now match the settings so the apply button can be disabled
 }
 
