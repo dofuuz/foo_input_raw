@@ -34,8 +34,8 @@ public:
 	//WTL message map
 	BEGIN_MSG_MAP_EX(CMyPreferences)
 		MSG_WM_INITDIALOG(OnInitDialog)
-		COMMAND_HANDLER_EX(IDC_BOGO1, EN_CHANGE, OnEditChange)
-		COMMAND_HANDLER_EX(IDC_BOGO2, EN_CHANGE, OnEditChange)
+		COMMAND_HANDLER_EX(IDC_FS, EN_CHANGE, OnEditChange)
+		COMMAND_HANDLER_EX(IDC_CHANNEL, EN_CHANGE, OnEditChange)
 	END_MSG_MAP()
 private:
 	BOOL OnInitDialog(CWindow, LPARAM);
@@ -47,8 +47,8 @@ private:
 };
 
 BOOL CMyPreferences::OnInitDialog(CWindow, LPARAM) {
-	SetDlgItemInt(IDC_BOGO1, cfg_fs, FALSE);
-	SetDlgItemInt(IDC_BOGO2, cfg_channel, FALSE);
+	SetDlgItemInt(IDC_FS, cfg_fs, FALSE);
+	SetDlgItemInt(IDC_CHANNEL, cfg_channel, FALSE);
 	return FALSE;
 }
 
@@ -64,21 +64,21 @@ t_uint32 CMyPreferences::get_state() {
 }
 
 void CMyPreferences::reset() {
-	SetDlgItemInt(IDC_BOGO1, default_cfg_fs, FALSE);
-	SetDlgItemInt(IDC_BOGO2, default_cfg_channel, FALSE);
+	SetDlgItemInt(IDC_FS, default_cfg_fs, FALSE);
+	SetDlgItemInt(IDC_CHANNEL, default_cfg_channel, FALSE);
 	OnChanged();
 }
 
 void CMyPreferences::apply() {
-	cfg_fs = GetDlgItemInt(IDC_BOGO1, NULL, FALSE);
-	cfg_channel = GetDlgItemInt(IDC_BOGO2, NULL, FALSE);
+	cfg_fs = GetDlgItemInt(IDC_FS, NULL, FALSE);
+	cfg_channel = GetDlgItemInt(IDC_CHANNEL, NULL, FALSE);
 	
 	OnChanged(); //our dialog content has not changed but the flags have - our currently shown values now match the settings so the apply button can be disabled
 }
 
 bool CMyPreferences::HasChanged() {
 	//returns whether our dialog content is different from the current configuration (whether the apply button should be enabled or not)
-	return GetDlgItemInt(IDC_BOGO1, NULL, FALSE) != cfg_fs || GetDlgItemInt(IDC_BOGO2, NULL, FALSE) != cfg_channel;
+	return GetDlgItemInt(IDC_FS, NULL, FALSE) != cfg_fs || GetDlgItemInt(IDC_CHANNEL, NULL, FALSE) != cfg_channel;
 }
 void CMyPreferences::OnChanged() {
 	//tell the host that our state has changed to enable/disable the apply button appropriately.
