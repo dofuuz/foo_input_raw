@@ -101,7 +101,11 @@ void CMyPreferences::apply() {
 	cfg_history_rate.add_item(temp);
 	cfg_fs = fs;
 
-	cfg_channel = GetDlgItemInt(IDC_CHANNEL, NULL, FALSE);
+	unsigned channel = GetDlgItemInt(IDC_CHANNEL, NULL, FALSE);
+	if (channel < 1) channel = 1;
+	if (8 < channel) channel = 8;
+	SetDlgItemInt(IDC_CHANNEL, channel, FALSE);
+	cfg_channel = channel;
 
 	OnChanged(); //our dialog content has not changed but the flags have - our currently shown values now match the settings so the apply button can be disabled
 }
