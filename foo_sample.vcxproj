@@ -103,7 +103,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="decode.cpp" />
     <ClCompile Include="input_raw.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="PCH.cpp">
@@ -119,9 +118,6 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="foo_sample.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\libPPUI\libPPUI.vcxproj">

@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="decode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="input_raw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -46,9 +43,6 @@
     <ResourceCompile Include="foo_sample.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\libPPUI\IDI_SCROLL.ico">

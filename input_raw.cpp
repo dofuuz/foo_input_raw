@@ -1,19 +1,23 @@
 #include "stdafx.h"
 
-enum {
-	raw_bits_per_sample = 16,
-	raw_channels = 1,
-	raw_sample_rate = 16000,
-
-	raw_bytes_per_sample = raw_bits_per_sample / 8,
-	raw_total_sample_width = raw_bytes_per_sample * raw_channels,
-};
+extern cfg_uint cfg_fs, cfg_channel;
 
 // Note that input class does *not* implement virtual methods or derive from interface classes.
 // Our methods get called over input framework templates. See input_singletrack_impl for descriptions of what each method does.
 // input_stubs just provides stub implementations of mundane methods that are irrelevant for most implementations.
 class input_raw : public input_stubs {
+	unsigned raw_sample_rate;
+	unsigned raw_channels;
+	unsigned raw_bits_per_sample = 16;
+	unsigned raw_total_sample_width;
+
 public:
+	input_raw() {
+		raw_sample_rate = cfg_fs;
+		raw_channels = cfg_channel;
+		raw_total_sample_width = raw_bits_per_sample / 8 * raw_channels;
+	}
+
 	void open(service_ptr_t<file> p_filehint,const char * p_path,t_input_open_reason p_reason,abort_callback & p_abort) {
 		if (p_reason == input_open_info_write) throw exception_io_unsupported_format();//our input does not support retagging.
 		m_file = p_filehint;//p_filehint may be null, hence next line
@@ -86,7 +90,7 @@ public:
 	
 	static bool g_is_our_content_type(const char * p_content_type) {return false;} // match against supported mime types here
 	static bool g_is_our_path(const char * p_path, const char * p_extension) {
-		return !stricmp_utf8(p_extension, "raw") || !stricmp_utf8(p_extension, "pcm");
+		return 0 == stricmp_utf8(p_extension, "pcm") || 0 == stricmp_utf8(p_extension, "raw");
 	}
 	static const char * g_get_name() { return "foo_sample raw input"; }
 	static const GUID g_get_guid() {

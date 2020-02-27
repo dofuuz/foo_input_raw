@@ -2,29 +2,18 @@
 #include "resource.h"
 #include <helpers/atl-misc.h>
 
-// Sample preferences interface: two meaningless configuration settings accessible through a preferences page and one accessible through advanced preferences.
-
-
 // These GUIDs identify the variables within our component's configuration file.
-static const GUID guid_cfg_bogoSetting1 = { 0xbd5c777, 0x735c, 0x440d, { 0x8c, 0x71, 0x49, 0xb6, 0xac, 0xff, 0xce, 0xb8 } };
-static const GUID guid_cfg_bogoSetting2 = { 0x752f1186, 0x9f61, 0x4f91, { 0xb3, 0xee, 0x2f, 0x25, 0xb1, 0x24, 0x83, 0x5d } };
-
-// This GUID identifies our Advanced Preferences branch (replace with your own when reusing code).
-static const GUID guid_advconfig_branch = { 0x28564ced, 0x4abf, 0x4f0c, { 0xa4, 0x43, 0x98, 0xda, 0x88, 0xe2, 0xcd, 0x39 } };
-// This GUID identifies our Advanced Preferences setting (replace with your own when reusing code) as well as this setting's storage within our component's configuration file.
-static const GUID guid_cfg_bogoSetting3 = { 0xf7008963, 0xed60, 0x4084, { 0xa8, 0x5d, 0xd1, 0xcd, 0xc5, 0x51, 0x22, 0xca } };
-
+static const GUID guid_cfg_fs = { 0x1d3c5d34, 0xc9f3, 0x4c5a, { 0x94, 0x5e, 0x64, 0xd9, 0x36, 0xad, 0x4c, 0x5f } };
+static const GUID guid_cfg_channel = { 0x52b24082, 0x6350, 0x482a, { 0x87, 0xf, 0x41, 0x47, 0x8b, 0x29, 0xdb, 0x6b } };
 
 enum {
-	default_cfg_bogoSetting1 = 1337,
-	default_cfg_bogoSetting2 = 666,
-	default_cfg_bogoSetting3 = 42,
+	default_cfg_fs = 16000,
+	default_cfg_channel = 1,
 };
 
-static cfg_uint cfg_bogoSetting1(guid_cfg_bogoSetting1, default_cfg_bogoSetting1), cfg_bogoSetting2(guid_cfg_bogoSetting2, default_cfg_bogoSetting2);
+cfg_uint cfg_fs(guid_cfg_fs, default_cfg_fs);
+cfg_uint cfg_channel(guid_cfg_channel, default_cfg_channel);
 
-static advconfig_branch_factory g_advconfigBranch("Sample Component", guid_advconfig_branch, advconfig_branch::guid_branch_tools, 0);
-static advconfig_integer_factory cfg_bogoSetting3("Bogo setting 3", guid_cfg_bogoSetting3, guid_advconfig_branch, 0, default_cfg_bogoSetting3, 0 /*minimum value*/, 9999 /*maximum value*/);
 
 class CMyPreferences : public CDialogImpl<CMyPreferences>, public preferences_page_instance {
 public:
@@ -58,8 +47,8 @@ private:
 };
 
 BOOL CMyPreferences::OnInitDialog(CWindow, LPARAM) {
-	SetDlgItemInt(IDC_BOGO1, cfg_bogoSetting1, FALSE);
-	SetDlgItemInt(IDC_BOGO2, cfg_bogoSetting2, FALSE);
+	SetDlgItemInt(IDC_BOGO1, cfg_fs, FALSE);
+	SetDlgItemInt(IDC_BOGO2, cfg_channel, FALSE);
 	return FALSE;
 }
 
@@ -75,21 +64,21 @@ t_uint32 CMyPreferences::get_state() {
 }
 
 void CMyPreferences::reset() {
-	SetDlgItemInt(IDC_BOGO1, default_cfg_bogoSetting1, FALSE);
-	SetDlgItemInt(IDC_BOGO2, default_cfg_bogoSetting2, FALSE);
+	SetDlgItemInt(IDC_BOGO1, default_cfg_fs, FALSE);
+	SetDlgItemInt(IDC_BOGO2, default_cfg_channel, FALSE);
 	OnChanged();
 }
 
 void CMyPreferences::apply() {
-	cfg_bogoSetting1 = GetDlgItemInt(IDC_BOGO1, NULL, FALSE);
-	cfg_bogoSetting2 = GetDlgItemInt(IDC_BOGO2, NULL, FALSE);
+	cfg_fs = GetDlgItemInt(IDC_BOGO1, NULL, FALSE);
+	cfg_channel = GetDlgItemInt(IDC_BOGO2, NULL, FALSE);
 	
 	OnChanged(); //our dialog content has not changed but the flags have - our currently shown values now match the settings so the apply button can be disabled
 }
 
 bool CMyPreferences::HasChanged() {
 	//returns whether our dialog content is different from the current configuration (whether the apply button should be enabled or not)
-	return GetDlgItemInt(IDC_BOGO1, NULL, FALSE) != cfg_bogoSetting1 || GetDlgItemInt(IDC_BOGO2, NULL, FALSE) != cfg_bogoSetting2;
+	return GetDlgItemInt(IDC_BOGO1, NULL, FALSE) != cfg_fs || GetDlgItemInt(IDC_BOGO2, NULL, FALSE) != cfg_channel;
 }
 void CMyPreferences::OnChanged() {
 	//tell the host that our state has changed to enable/disable the apply button appropriately.
@@ -99,13 +88,12 @@ void CMyPreferences::OnChanged() {
 class preferences_page_myimpl : public preferences_page_impl<CMyPreferences> {
 	// preferences_page_impl<> helper deals with instantiation of our dialog; inherits from preferences_page_v3.
 public:
-	const char * get_name() {return "Sample Component";}
+	const char * get_name() {return "Raw PCM Player";}
 	GUID get_guid() {
-		// This is our GUID. Replace with your own when reusing the code.
-		static const GUID guid = { 0x7702c93e, 0x24dc, 0x48ed, { 0x8d, 0xb1, 0x3f, 0x27, 0xb3, 0x8c, 0x7c, 0xc9 } };
+		static const GUID guid = { 0xb3232742, 0x3dee, 0x491b, { 0xa9, 0x34, 0x7c, 0x9e, 0x1c, 0x4c, 0x31, 0x99 } };
 		return guid;
 	}
-	GUID get_parent_guid() {return guid_tools;}
+	GUID get_parent_guid() {return guid_input;}
 };
 
 static preferences_page_factory_t<preferences_page_myimpl> g_preferences_page_myimpl_factory;
