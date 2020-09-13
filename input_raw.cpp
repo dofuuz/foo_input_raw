@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 extern cfg_uint cfg_fs, cfg_channel;
+extern cfg_int cfg_bits;
 
 // Note that input class does *not* implement virtual methods or derive from interface classes.
 // Our methods get called over input framework templates. See input_singletrack_impl for descriptions of what each method does.
@@ -8,13 +9,14 @@ extern cfg_uint cfg_fs, cfg_channel;
 class input_raw : public input_stubs {
 	unsigned raw_sample_rate;
 	unsigned raw_channels;
-	unsigned raw_bits_per_sample = 16;
+	unsigned raw_bits_per_sample;
 	unsigned raw_total_sample_width;
 
 public:
 	input_raw() {
 		raw_sample_rate = cfg_fs;
 		raw_channels = cfg_channel;
+		raw_bits_per_sample = std::abs(cfg_bits);
 		raw_total_sample_width = raw_bits_per_sample / 8 * raw_channels;
 	}
 
@@ -38,7 +40,8 @@ public:
 
 		// Indicate whether this is a fixedpoint or floatingpoint stream, when using bps >= 32
 		// As 32bit fixedpoint can't be decoded losslessly by fb2k, does not fit in float32 audio_sample.
-		if ( raw_bits_per_sample >= 32 ) p_info.info_set("bitspersample_extra", "fixed-point");
+		if (cfg_bits >= 32) p_info.info_set("bitspersample_extra", "fixed-point");
+		if (cfg_bits < 0) p_info.info_set("bitspersample_extra", "floating-point");
 
 		p_info.info_set("encoding","lossless");
 		p_info.info_set_bitrate((raw_bits_per_sample * raw_channels * raw_sample_rate + 500 /* rounding for bps to kbps*/ ) / 1000 /* bps to kbps */);
@@ -63,10 +66,15 @@ public:
 		// EOF?
 		if (got == 0) return false;
 
-		// This converts the data that we've read to the audio_chunk's internal format, audio_sample (float 32-bit).
-		// audio_sample is the audio data format that all fb2k code works with.
-		p_chunk.set_data_fixedpoint(m_buffer.get_ptr(), got * raw_total_sample_width,raw_sample_rate,raw_channels,raw_bits_per_sample,audio_chunk::g_guess_channel_config(raw_channels));
-		
+		if (0 < cfg_bits) {
+			// This converts the data that we've read to the audio_chunk's internal format, audio_sample (float 32-bit).
+			// audio_sample is the audio data format that all fb2k code works with.
+			p_chunk.set_data_fixedpoint(m_buffer.get_ptr(), got * raw_total_sample_width, raw_sample_rate, raw_channels, raw_bits_per_sample, audio_chunk::g_guess_channel_config(raw_channels));
+		}
+		else {
+			p_chunk.set_data((const audio_sample*)m_buffer.get_ptr(), got, raw_channels, raw_sample_rate);
+		}
+
 		//processed successfully, no EOF
 		return true;
 	}
@@ -94,7 +102,7 @@ public:
 	}
 	static const char * g_get_name() { return "foo_input_raw raw input"; }
 	static const GUID g_get_guid() {
-		return { 0xd9c01c8d, 0x69c5, 0x4eec,{ 0xa2, 0x1c, 0x1d, 0x14, 0xef, 0x65, 0xbf, 0x8b } };
+		return { 0x5060dd5f, 0x16a4, 0x4a9f, { 0x93, 0x6f, 0x1a, 0xd2, 0xd6, 0x22, 0x5a, 0xf8 } };
 	}
 public:
 	service_ptr_t<file> m_file;
