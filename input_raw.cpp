@@ -91,7 +91,9 @@ public:
 	}
 	bool decode_can_seek() {return m_file->can_seek();}
 	bool decode_get_dynamic_info(file_info & p_out, double & p_timestamp_delta) {return false;} // deals with dynamic information such as VBR bitrates
-	bool decode_get_dynamic_info_track(file_info & p_out, double & p_timestamp_delta) {return false;} // deals with dynamic information such as track changes in live streams
+	bool decode_get_dynamic_info_track(file_info & p_out, double & p_timestamp_delta) {
+		return true;
+	} // deals with dynamic information such as track changes in live streams
 	void decode_on_idle(abort_callback & p_abort) {m_file->on_idle(p_abort);}
 
 	void retag(const file_info & p_info,abort_callback & p_abort) {throw exception_io_unsupported_format();}
@@ -104,7 +106,8 @@ public:
 	static const GUID g_get_guid() {
 		return { 0x5060dd5f, 0x16a4, 0x4a9f, { 0x93, 0x6f, 0x1a, 0xd2, 0xd6, 0x22, 0x5a, 0xf8 } };
 	}
-public:
+
+private:
 	service_ptr_t<file> m_file;
 	pfc::array_t<t_uint8> m_buffer;
 };
