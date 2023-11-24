@@ -21,7 +21,7 @@ public:
 	}
 
 	void open(service_ptr_t<file> p_filehint,const char * p_path,t_input_open_reason p_reason,abort_callback & p_abort) {
-		if (p_reason == input_open_info_write) throw exception_io_unsupported_format();//our input does not support retagging.
+		if (p_reason == input_open_info_write) throw exception_tagging_unsupported();//our input does not support retagging.
 		m_file = p_filehint;//p_filehint may be null, hence next line
 		input_open_file_helper(m_file,p_path,p_reason,p_abort);//if m_file is null, opens file with appropriate privileges for our operation (read/write for writing tags, read-only otherwise).
 	}
@@ -47,6 +47,7 @@ public:
 		p_info.info_set_bitrate((raw_bits_per_sample * raw_channels * raw_sample_rate + 500 /* rounding for bps to kbps*/ ) / 1000 /* bps to kbps */);
 		
 	}
+	t_filestats2 get_stats2(unsigned f, abort_callback& a) {return m_file->get_stats2_(f, a);}
 	t_filestats get_file_stats(abort_callback & p_abort) {return m_file->get_stats(p_abort);}
 
 	void decode_initialize(unsigned p_flags,abort_callback & p_abort) {
@@ -96,8 +97,10 @@ public:
 	} // deals with dynamic information such as track changes in live streams
 	void decode_on_idle(abort_callback & p_abort) {m_file->on_idle(p_abort);}
 
-	void retag(const file_info & p_info,abort_callback & p_abort) {throw exception_io_unsupported_format();}
-	
+	// Note that open() already rejects requests to open for tag writing, so these two should never get called.
+	void retag(const file_info & p_info,abort_callback & p_abort) {throw exception_tagging_unsupported();}
+	void remove_tags(abort_callback&) { throw exception_tagging_unsupported(); }
+
 	static bool g_is_our_content_type(const char * p_content_type) {return false;} // match against supported mime types here
 	static bool g_is_our_path(const char * p_path, const char * p_extension) {
 		return 0 == stricmp_utf8(p_extension, "pcm") || 0 == stricmp_utf8(p_extension, "raw");
